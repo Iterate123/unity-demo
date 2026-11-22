@@ -1,0 +1,71 @@
+# ===== 1. 忽略重复的教程原版资源目录及无关文件 =====
+017 Resources/
+demo.html
+
+# ===== 2. Unity 自动生成的缓存与临时目录（匹配所有子项目） =====
+[Ll]ibrary/
+[Tt]emp/
+[Oo]bj/
+[Bb]uild/
+[Bb]uilds/
+[Bb][Uu][Ii][Ll][Dd][Ss]/
+[Ll]ogs/
+[Uu]ser[Ss]ettings/
+[Mm]emoryCaptures/
+[Rr]ecordings/
+[Ss]erver[Bb]uild/
+**/_Recovery/
+**/_Recovery.meta
+
+# ===== 3. Asset Store / Addressables 自动生成产物 =====
+**/[Aa]ssets/AssetStoreTools*
+**/[Aa]ssets/[Aa]ddressable[Aa]ssets[Dd]ata/*/*.bin*
+**/[Aa]ssets/[Ss]treamingAssets/aa.meta
+**/[Aa]ssets/[Ss]treamingAssets/aa/*
+**/[Aa]ssets/[Pp]lugins/[Ee]ditor/JetBrains*
+
+# ===== 4. IDE / Visual Studio / Rider 自动生成文件 =====
+.vs/
+.vscode/
+.idea/
+.gradle/
+.consulo/
+ExportedObj/
+*.csproj
+*.unityproj
+*.sln
+*.slnx
+*.suo
+*.tmp
+*.user
+*.userprefs
+*.pidb
+*.booproj
+*.svd
+*.pdb
+*.mdb
+*.opendb
+*.VC.db
+.vsconfig
+
+# ===== 5. 打包产物与压缩包 =====
+*.apk
+*.aab
+*.unitypackage
+*.unitypackage.meta
+*.app
+*.zip
+crashlytics-build.properties
+sysinfo.txt
+*.stackdump
+
+# ===== 6. 系统垃圾文件 =====
+[Tt]humbs.db
+[Tt]humbs.db.meta
+[Ee]humbs.db
+[Ee]humbs.db.meta
+desktop.ini
+desktop.ini.meta
+.DS_Store
+.DS_Store.meta
+$RECYCLE.BIN/
