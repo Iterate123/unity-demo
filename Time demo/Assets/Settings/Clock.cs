@@ -9,7 +9,7 @@ public class Clock : MonoBehaviour
     [SerializeField]
 	Transform hoursPivot, minutesPivot, secondsPivot;
 
-    void update()
+    void Update()
     {
         TimeSpan time = DateTime.Now.TimeOfDay;
         //Debug.Log(DateTime.Now.Hour);
