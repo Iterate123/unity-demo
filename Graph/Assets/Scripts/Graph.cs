@@ -14,6 +14,10 @@ public class Graph : MonoBehaviour {
 	// 分辨率（生成的点的数量），默认值为 10
 	int resolution = 10;
 
+	// [SerializeField, Range(0, 2)]
+	[SerializeField]
+	FunctionLibrary.FunctionName function;
+
 	// 缓存所有生成的采样点的 Transform 数组，避免在 Update 中每帧重复查找组件
 	Transform[] points;
 
@@ -27,10 +31,14 @@ public class Graph : MonoBehaviour {
 		// 每个点的缩放大小，等于 (1, 1, 1) * step，保证相邻方块刚好紧挨着不重叠
 		var scale = Vector3.one * step;
 		// 初始化数组，长度为 resolution，用来存放所有点的引用
-		points = new Transform[resolution];
+		points = new Transform[resolution * resolution];
 
 		// 循环实例化每一个采样点，并设置它们的初始位置、大小和父物体
-		for (int i = 0; i < points.Length; i++) {
+		for (int i = 0, x = 0, z = 0; i < points.Length; i++, x++) {
+			if (x == resolution) {
+				x = 0;
+				z += 1;
+			}
 			// 实例化预制体，同时将新生成的 Transform 引用赋值给数组 points[i] 和局部变量 point
 			Transform point = points[i] = Instantiate(pointPrefab);
 			//points[i] = point;
@@ -38,7 +46,8 @@ public class Graph : MonoBehaviour {
 			// 计算当前点的 X 坐标：
 			// + 0.5f 是将方块中心向右偏移半个步长，使所有方块的左右边缘正好严丝合缝地对齐 [-1, 1] 边界；
 			// - 1f 是将 [0, 2] 的区间平移到 [-1, 1]
-			position.x = (i + 0.5f) * step - 1f;
+			position.x = (x  + 0.5f) * step - 1f;
+			position.z = (z + 0.5f) * step - 1f;
 			//position.y = position.x * position.x * position.x; // 静态 f(x) = x³ 曲线（已改到 Update 中动态计算）
 
 			// 将计算好的坐标赋给采样点的局部位置（localPosition）
@@ -57,6 +66,7 @@ public class Graph : MonoBehaviour {
 
 	// Update 在每一帧都会调用一次，用于让曲线随时间动起来
 	void Update () {
+		FunctionLibrary.Function f = FunctionLibrary.GetFunction(function);
 		// 遍历在 Awake 中缓存好的 points 数组
 		float time = Time.time;
 		for (int i = 0; i < points.Length; i++) {
@@ -64,9 +74,16 @@ public class Graph : MonoBehaviour {
 			Transform point = points[i];
 			// 先把当前点的 localPosition 拷贝到局部变量 position（因为 C# 中结构体属性不能直接修改单个分量如 point.localPosition.y = ...）
 			Vector3 position = point.localPosition;
-			// 计算动态正弦波 y = sin(π * (x + t))：
-			// 乘以 π (Mathf.PI) 让 [-1, 1] 区间刚好覆盖一个完整周期（2π）；加上 Time.time 让波形随时间向左移动
-			position.y = Mathf.Sin(Mathf.PI * (position.x + time));
+			// if (function == 0) {
+			// position.y = FunctionLibrary.Wave(position.x, time);
+			// }
+			// else if (function == 1) {
+			// 	position.y = FunctionLibrary.MultiWave(position.x, time);
+			// }
+			// else {
+			// 	position.y = FunctionLibrary.Ripple(position.x, time);
+			// }
+			position.y = f(position.x, position.z, time);
 			// 将修改完 Y 坐标的新位置重新赋回给采样点的 localPosition
 			point.localPosition = position;
 		}
