@@ -27,18 +27,18 @@ public class Graph : MonoBehaviour {
 		// 计算每个点之间的步长（也是每个小方块的边长）：将 [-1, 1] 总长度为 2 的区间平分为 resolution 份
 		float step = 2f / resolution;
 		// 用于复用的局部坐标变量，初始为 (0, 0, 0)
-		var position = Vector3.zero;
+		//var position = Vector3.zero;
 		// 每个点的缩放大小，等于 (1, 1, 1) * step，保证相邻方块刚好紧挨着不重叠
 		var scale = Vector3.one * step;
 		// 初始化数组，长度为 resolution，用来存放所有点的引用
 		points = new Transform[resolution * resolution];
 
 		// 循环实例化每一个采样点，并设置它们的初始位置、大小和父物体
-		for (int i = 0, x = 0, z = 0; i < points.Length; i++, x++) {
-			if (x == resolution) {
-				x = 0;
-				z += 1;
-			}
+		for (int i = 0; i < points.Length;i++) {
+			// if (x == resolution) {
+			// 	x = 0;
+			// 	z += 1;
+			// }
 			// 实例化预制体，同时将新生成的 Transform 引用赋值给数组 points[i] 和局部变量 point
 			Transform point = points[i] = Instantiate(pointPrefab);
 			//points[i] = point;
@@ -46,12 +46,12 @@ public class Graph : MonoBehaviour {
 			// 计算当前点的 X 坐标：
 			// + 0.5f 是将方块中心向右偏移半个步长，使所有方块的左右边缘正好严丝合缝地对齐 [-1, 1] 边界；
 			// - 1f 是将 [0, 2] 的区间平移到 [-1, 1]
-			position.x = (x  + 0.5f) * step - 1f;
-			position.z = (z + 0.5f) * step - 1f;
+			// position.x = (x  + 0.5f) * step - 1f;
+			// position.z = (z + 0.5f) * step - 1f;
 			//position.y = position.x * position.x * position.x; // 静态 f(x) = x³ 曲线（已改到 Update 中动态计算）
 
 			// 将计算好的坐标赋给采样点的局部位置（localPosition）
-			point.localPosition = position;
+			// point.localPosition = position;
 			// 将计算好的缩放赋给采样点的局部缩放（localScale）
 			point.localScale = scale;
 			// 将当前 Graph 物体的 transform 设为该点的父物体；
@@ -69,7 +69,17 @@ public class Graph : MonoBehaviour {
 		FunctionLibrary.Function f = FunctionLibrary.GetFunction(function);
 		// 遍历在 Awake 中缓存好的 points 数组
 		float time = Time.time;
-		for (int i = 0; i < points.Length; i++) {
+		float step = 2f / resolution;
+		float v = 0.5f * step - 1f;
+		for (int i = 0, x = 0, z = 0; i < points.Length; i++, x++) {
+			if (x == resolution) {
+				x = 0;
+				z += 1;
+				v = (z + 0.5f) * step - 1f;
+			}
+			float u = (x + 0.5f) * step - 1f;
+			//float v = (z + 0.5f) * step - 1f;
+			points[i].localPosition = f(u, v, time);
 			// 从数组中直接取出第 i 个点的 Transform 引用（极快的纯 C# 数组访问）
 			Transform point = points[i];
 			// 先把当前点的 localPosition 拷贝到局部变量 position（因为 C# 中结构体属性不能直接修改单个分量如 point.localPosition.y = ...）
@@ -83,9 +93,9 @@ public class Graph : MonoBehaviour {
 			// else {
 			// 	position.y = FunctionLibrary.Ripple(position.x, time);
 			// }
-			position.y = f(position.x, position.z, time);
+			//position.y = f(position.x, position.z, time);
 			// 将修改完 Y 坐标的新位置重新赋回给采样点的 localPosition
-			point.localPosition = position;
+			//point.localPosition = position;
 		}
 	}
 }
