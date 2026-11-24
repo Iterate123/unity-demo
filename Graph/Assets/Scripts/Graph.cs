@@ -58,6 +58,7 @@ public class Graph : MonoBehaviour {
 	// Update 在每一帧都会调用一次，用于让曲线随时间动起来
 	void Update () {
 		// 遍历在 Awake 中缓存好的 points 数组
+		float time = Time.time;
 		for (int i = 0; i < points.Length; i++) {
 			// 从数组中直接取出第 i 个点的 Transform 引用（极快的纯 C# 数组访问）
 			Transform point = points[i];
@@ -65,7 +66,7 @@ public class Graph : MonoBehaviour {
 			Vector3 position = point.localPosition;
 			// 计算动态正弦波 y = sin(π * (x + t))：
 			// 乘以 π (Mathf.PI) 让 [-1, 1] 区间刚好覆盖一个完整周期（2π）；加上 Time.time 让波形随时间向左移动
-			position.y = Mathf.Sin(Mathf.PI * (position.x + Time.time));
+			position.y = Mathf.Sin(Mathf.PI * (position.x + time));
 			// 将修改完 Y 坐标的新位置重新赋回给采样点的 localPosition
 			point.localPosition = position;
 		}
