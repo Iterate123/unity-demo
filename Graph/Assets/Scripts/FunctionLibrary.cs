@@ -27,6 +27,8 @@ public static class FunctionLibrary
 		return functions[(int)name];
 	}
 
+	
+
 	// 1. 基础正弦波曲面（Wave）：f(u, v, t) = [u, sin(π(u + v + t)), v]
 	public static Vector3 Wave(float u, float v, float t)
 	{
@@ -165,4 +167,32 @@ public static class FunctionLibrary
 		// 返回计算出的三维马鞍面点坐标
 		return p;
 	}
+
+	// 获取下一个函数的枚举名称（用于定时自动循环切换所有数学曲面）
+	public static FunctionName GetNextFunctionName (FunctionName name) {
+		// 使用三元条件运算符 (? :) 简化下面的 if-else：
+		// 如果当前枚举索引小于数组最后一个元素的索引（functions.Length - 1），则返回下一个枚举 (name + 1)；
+		// 否则说明已经是最后一个函数，重置回第一个函数 0（即 FunctionName.Wave）
+		return (int)name < functions.Length - 1 ? name + 1 : 0;
+		// 教程简化为三元运算符之前的 if-else 写法（由于上面已经 return，如果不注释掉会导致“CS0162: 检测到无法访问的代码”）：
+		// if ((int)name < functions.Length - 1) {
+		// 	return name + 1;
+		// }
+		// else {
+		// 	return 0;
+		// }
+	}
+
+	public static FunctionName GetRandomFunctionNameOtherThan (FunctionName name) {
+		var choice = (FunctionName)Random.Range(1, functions.Length);
+		return choice == name ? 0 : choice;
+	}
+
+	public static Vector3 Morph (
+		float u, float v, float t, Function from, Function to, float progress
+	) {
+		return Vector3.LerpUnclamped(
+			from(u, v, t), to(u, v, t),  SmoothStep(0f, 1f, progress));
+	}
+	
 }

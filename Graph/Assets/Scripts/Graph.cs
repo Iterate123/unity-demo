@@ -20,8 +20,21 @@ public class Graph : MonoBehaviour {
 	// 当前需要在图表中显示的数学曲面函数名称（引用自 FunctionLibrary 中的 FunctionName 枚举）
 	FunctionLibrary.FunctionName function;
 
+	public enum TransitionMode { Cycle, Random }
+
+	[SerializeField]
+	TransitionMode transitionMode;
+
+	[SerializeField, Min(0f)]
+	float functionDuration = 1f, transitionDuration = 1f;
+
 	// 缓存所有生成的采样点的 Transform 一维数组，避免在 Update 中每帧重复查找组件
 	Transform[] points;
+	float duration;
+
+	bool transitioning;
+
+	FunctionLibrary.FunctionName transitionFunction;
 
 	// Awake 在脚本实例被加载时调用一次（早于 Start），用于初始化生成所有采样点并设置缩放与父节点
 	void Awake()
@@ -70,6 +83,37 @@ public class Graph : MonoBehaviour {
 
 	// Update 在每一帧都会调用一次，用于根据所选数学函数让三维曲面随时间动态变化
 	void Update () {
+		duration += Time.deltaTime;
+		if (transitioning)
+		{
+			if (duration >= transitionDuration) {
+				duration -= transitionDuration;
+				transitioning = false;
+			}
+		}
+		else if (duration >= functionDuration) {
+			duration -= functionDuration;
+			transitioning = true;
+			transitionFunction = function;
+			//function = FunctionLibrary.GetNextFunctionName(function);
+			PickNextFunction();
+		}
+		if (transitioning) {
+			UpdateFunctionTransition();
+		}
+		else {
+			UpdateFunction();
+		}
+	}
+	
+	void PickNextFunction () {
+		function = transitionMode == TransitionMode.Cycle ?
+			FunctionLibrary.GetNextFunctionName(function) :
+			FunctionLibrary.GetRandomFunctionNameOtherThan(function);
+	}
+
+	// 正常显示阶段（非过渡期）每帧更新所有点的位置
+	void UpdateFunction () {
 		// 根据 Inspector 中选中的枚举值 function，从 FunctionLibrary 获取对应的数学函数委托引用 f
 		FunctionLibrary.Function f = FunctionLibrary.GetFunction(function);
 		// 获取当前游戏已运行的时间（秒），作为数学函数的动画时间参数 t（在循环外获取一次以减少属性调用开销）
@@ -95,6 +139,40 @@ public class Graph : MonoBehaviour {
 			//float v = (z + 0.5f) * step - 1f; // 未优化前在每次循环中都计算 v 的写法（现已优化到循环外和 if 换行块内）
 			// 调用委托函数 f(u, v, time) 直接计算出三维空间坐标 Vector3，并赋值给当前采样点的 localPosition
 			points[i].localPosition = f(u, v, time);
+		}
+	}
+
+	// 两个函数切换时的平滑过渡变形阶段（transitioning == true）每帧更新所有点的位置
+	void UpdateFunctionTransition () {
+		FunctionLibrary.Function
+			from = FunctionLibrary.GetFunction(transitionFunction),
+			to = FunctionLibrary.GetFunction(function);
+		float progress = duration / transitionDuration;
+		// 获取当前游戏已运行的时间（秒），作为数学函数的动画时间参数 t（在循环外获取一次以减少属性调用开销）
+		float time = Time.time;
+		// 在 Update 中实时根据当前 resolution 计算步长 step（这样在运行模式下拖动 resolution 滑块也能动态拉伸/压缩参数区间）
+		float step = 2f / resolution;
+		// 预先计算第一行（z = 0）对应的纵向参数坐标 v，后续只在换行（z 改变）时才重新计算 v，避免每次循环重复计算
+		float v = 0.5f * step - 1f;
+		// 遍历所有采样点：i 为数组总索引，x 为当前列索引（每步自增），z 为当前行索引（仅在每行结束时自增）
+		// 使用单层循环而非嵌套双层循环，可以确保即使在运行模式下修改了 resolution，也始终能遍历并更新数组中的每一个点
+		for (int i = 0, x = 0, z = 0; i < points.Length; i++, x++) {
+			// 当列索引 x 达到每行点数 resolution 时，说明当前行已排满，需要换行
+			if (x == resolution) {
+				// 将列索引 x 重置回行首 0
+				x = 0;
+				// 将行索引 z 加 1，进入下一行
+				z += 1;
+				// 仅在行索引 z 发生变化时，重新计算新的纵向参数坐标 v ∈ (-1, 1)
+				v = (z + 0.5f) * step - 1f;
+			}
+			// 根据当前列索引 x 计算横向参数坐标 u ∈ (-1, 1)
+			float u = (x + 0.5f) * step - 1f;
+			//float v = (z + 0.5f) * step - 1f; // 未优化前在每次循环中都计算 v 的写法（现已优化到循环外和 if 换行块内）
+			// 调用委托函数 f(u, v, time) 直接计算出三维空间坐标 Vector3，并赋值给当前采样点的 localPosition
+			points[i].localPosition = FunctionLibrary.Morph(
+				u, v, time, from, to, progress
+			);
 
 			// 以下为升级到三维参数曲面（Vector3 返回值）之前、仅修改 position.y 时的历史演进代码：
 			// 从数组中直接取出第 i 个点的 Transform 引用
