@@ -205,8 +205,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 330585543}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 1, z: -10}
+  m_LocalRotation: {x: -0.22416338, y: 0.3688505, z: -0.09214269, w: -0.8973349}
+  m_LocalPosition: {x: 1.751972, y: 1.3426311, z: -1.7912296}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -462,7 +462,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Graph
   pointPrefab: {fileID: 6848070705219647397, guid: 60eb37300d4490d488a2e7816b7df384, type: 3}
-  resolution: 50
+  resolution: 100
+  function: 4
 --- !u!4 &1608052923
 Transform:
   m_ObjectHideFlags: 0
